@@ -52,8 +52,10 @@ TEST_CASE("Basic options", "[options]")
     ("s,short", "a short option")
     ("value", "an option with a value", cxxopts::value<std::string>())
     ("a,av", "a short option with a value", cxxopts::value<std::string>())
-    ("6,six", "a short number option")
-    ;
+    ("6,six", "a short number option");
+
+  options.add_option("","e", "extra", "extra options", cxxopts::value<std::string>(),"", true);
+
 
   Argv argv({
     "tester",
@@ -63,6 +65,8 @@ TEST_CASE("Basic options", "[options]")
     "value",
     "-a",
     "b",
+    "-e", 
+    "extra_value",
     "-6"
   });
 
@@ -70,6 +74,7 @@ TEST_CASE("Basic options", "[options]")
   auto argc = argv.argc();
 
   options.parse(argc, actual_argv);
+  std::cout << options.help({""}) << std::endl; // print out the help 
 
   CHECK(options.count("long") == 1);
   CHECK(options.count("s") == 1);
@@ -78,6 +83,7 @@ TEST_CASE("Basic options", "[options]")
   CHECK(options["value"].as<std::string>() == "value");
   CHECK(options["a"].as<std::string>() == "b");
   CHECK(options.count("6") == 1);
+  CHECK(options.count("e")==1);
 }
 
 TEST_CASE("No positional", "[positional]")

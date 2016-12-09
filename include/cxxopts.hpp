@@ -383,6 +383,15 @@ namespace cxxopts
     }
   };
 
+  class required_option_not_specified : public OptionParseException
+  {
+    public:
+    required_option_not_specified(const std::string& option)
+    : OptionParseException(u8"Required option ‘" + option + u8"’ not given")
+    {
+    }
+  };
+
   class argument_incorrect_type : public OptionParseException
   {
     public:
@@ -665,6 +674,7 @@ namespace cxxopts
     std::string implicit_value;
     std::string arg_help;
     bool is_container;
+    bool is_required;
   };
 
   struct HelpGroupDetails
@@ -702,7 +712,8 @@ namespace cxxopts
       const std::string& l,
       std::string desc,
       std::shared_ptr<const Value> value,
-      std::string arg_help
+      std::string arg_help,
+      bool is_required=false
     );
 
     int
@@ -903,6 +914,10 @@ namespace cxxopts
       {
         desc += toLocalString(" (default: " + o.default_value + ")");
       }
+      if (o.is_required) {
+        desc += " (REQUIRED)";
+      }
+        
 
       String result;
 
@@ -980,7 +995,7 @@ OptionAdder::operator()
   const auto& l = result[3];
 
   m_options.add_option(m_group, s.str(), l.str(), desc, value,
-    std::move(arg_help));
+    std::move(arg_help) );
 
   return *this;
 }
@@ -1250,7 +1265,8 @@ Options::add_option
   const std::string& l,
   std::string desc,
   std::shared_ptr<const Value> value,
-  std::string arg_help
+  std::string arg_help,
+  bool is_required
 )
 {
   auto stringDesc = toLocalString(std::move(desc));
@@ -1274,7 +1290,8 @@ Options::add_option
       value->has_default(), value->get_default_value(),
       value->has_implicit(), value->get_implicit_value(),
       std::move(arg_help),
-      value->is_container()});
+      value->is_container(),
+      is_required});
 }
 
 void
